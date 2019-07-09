@@ -1,0 +1,66 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>TCP可靠传输-ARQ协议</title>
+</head>
+<script src="static/js/pixi.js"></script>
+
+<body class="docker">
+
+</body>
+<script type="text/javascript">
+    //Aliases
+    let Application = PIXI.Application,
+        loader = PIXI.loader,
+        resources = PIXI.loader.resources,
+        Sprite = PIXI.Sprite,
+        Text = PIXI.Text;
+    let app = new Application({
+        width: 1024,         // default: 800
+        height: 600,        // default: 600
+        antialias: true,    // default: false
+        transparent: false, // default: false
+        backgroundColor: 0xFFFFFF,
+        resolution: 1,       // default: 1
+    }
+    );
+    document.body.appendChild(app.view);
+
+    loader
+        .add("routerImage", "static/img/router.png", {
+            crossOrigin: true
+        })
+        .load(setup);
+
+    function setup() {
+        //加载主机A
+        let routerA = new Sprite(resources.routerImage.texture);
+        routerA.x = 100;
+        routerA.y = 250;
+        app.stage.addChild(routerA)
+        let messageA = new Text("主机A");
+        app.stage.addChild(messageA);
+        messageA.position.set(100, 320);
+        // 加载主机B
+        let routerB = new Sprite(resources.routerImage.texture);
+        routerB.x = 860;
+        routerB.y = 250;
+        app.stage.addChild(routerB)
+        let messageB = new Text("主机B");
+        app.stage.addChild(messageB);
+        messageB.position.set(860, 320);
+    }
+</script>
+<style type="text/css">
+    .docker {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+    }
+</style>
+
+</html>
