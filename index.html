@@ -11,12 +11,15 @@
 
 </body>
 <script type="text/javascript">
+    // 定义路由器数组
+    let router = [], label = []
     //Aliases
     let Application = PIXI.Application,
         loader = PIXI.loader,
         resources = PIXI.loader.resources,
         Sprite = PIXI.Sprite,
         Text = PIXI.Text;
+    Graphics = PIXI.Graphics;
     let app = new Application({
         width: 1024,         // default: 800
         height: 600,        // default: 600
@@ -33,24 +36,52 @@
             crossOrigin: true
         })
         .load(setup);
-
+    // 初始化
     function setup() {
         //加载主机A
-        let routerA = new Sprite(resources.routerImage.texture);
-        routerA.x = 100;
-        routerA.y = 250;
-        app.stage.addChild(routerA)
-        let messageA = new Text("主机A");
-        app.stage.addChild(messageA);
-        messageA.position.set(100, 320);
+        router[0] = new Sprite(resources.routerImage.texture);
+        router[0].x = 100;
+        router[0].y = 250;
+        app.stage.addChild(router[0])
+        //主机Alabel
+        label[0] = new Text("主机A");
+        app.stage.addChild(label[0]);
+        label[0].position.set(100, 320);
         // 加载主机B
-        let routerB = new Sprite(resources.routerImage.texture);
-        routerB.x = 860;
-        routerB.y = 250;
-        app.stage.addChild(routerB)
-        let messageB = new Text("主机B");
-        app.stage.addChild(messageB);
-        messageB.position.set(860, 320);
+        router[1] = new Sprite(resources.routerImage.texture);
+        router[1].x = 860;
+        router[1].y = 250;
+        app.stage.addChild(router[1])
+        // 主机Blabel
+        label[1] = new Text("主机B");
+        app.stage.addChild(label[1]);
+        label[1].position.set(860, 320);
+        // 初始化连接线
+        var line = new Graphics();
+        line.lineStyle(4, 0x000000, 1);
+        line.moveTo(184, 0);
+        line.lineTo(840, 0);
+        line.x = 0;
+        line.y = 280;
+        app.stage.addChild(line);
+        //set the game state to `play`
+        state = play;
+
+        //Start the game loop
+        app.ticker.add(delta => gameLoop(delta));
+    }
+    function gameLoop(delta) {
+        //Update the current game state:
+        state(delta);
+    }
+    function play(delta) {
+        //Move the explorer and contain it inside the dungeon
+        //Move the blob monsters
+        //Check for a collision between the blobs and the explorer
+        //Check for a collision between the explorer and the treasure
+        //Check for a collision between the treasure and the door
+        //Decide whether the game has been won or lost
+        //Change the game `state` to `end` when the game is finsihed
     }
 </script>
 <style type="text/css">
