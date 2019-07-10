@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>TCP可靠传输-ARQ协议</title>
+    <title>TCP可靠传输-连续ARQ协议</title>
 </head>
 <script src="static/js/pixi.js"></script>
 
@@ -18,8 +18,8 @@
         loader = PIXI.loader,
         resources = PIXI.loader.resources,
         Sprite = PIXI.Sprite,
-        Text = PIXI.Text;
-    Graphics = PIXI.Graphics;
+        Text = PIXI.Text,
+        Graphics = PIXI.Graphics;
     let app = new Application({
         width: 1024,         // default: 800
         height: 600,        // default: 600
@@ -27,15 +27,15 @@
         transparent: false, // default: false
         backgroundColor: 0xFFFFFF,
         resolution: 1,       // default: 1
-    }
-    );
-    document.body.appendChild(app.view);
+    });
 
     loader
-        .add("routerImage", "static/img/router.png", {
-            crossOrigin: true
-        })
+        .add("routerImage", "static/img/router.png")
         .load(setup);
+    document.body.appendChild(app.view);
+    function play(delta) {
+        
+    }
     // 初始化
     function setup() {
         //加载主机A
@@ -66,22 +66,12 @@
         app.stage.addChild(line);
         //set the game state to `play`
         state = play;
-
         //Start the game loop
         app.ticker.add(delta => gameLoop(delta));
     }
     function gameLoop(delta) {
         //Update the current game state:
         state(delta);
-    }
-    function play(delta) {
-        //Move the explorer and contain it inside the dungeon
-        //Move the blob monsters
-        //Check for a collision between the blobs and the explorer
-        //Check for a collision between the explorer and the treasure
-        //Check for a collision between the treasure and the door
-        //Decide whether the game has been won or lost
-        //Change the game `state` to `end` when the game is finsihed
     }
 </script>
 <style type="text/css">
