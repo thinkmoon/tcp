@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>TCP可靠传输-连续ARQ协议</title>
+    <title>TCP可靠传输-停止等待ARQ协议</title>
 </head>
 <script src="static/js/pixi.js"></script>
 
@@ -12,7 +12,14 @@
 </body>
 <script type="text/javascript">
     // 定义路由器数组
-    let router = [], label = []
+    let router = [], label = [], mouse = null, MessageData = [];
+    // 链路连接状态
+    let status = true, sending = false;
+    let SendMessage = "I love you!", index = 0, Message = null;
+    let site = 0, ACK_TEXT = null, ACK_Array = new Int8Array(SendMessage.length),ACK = {
+        status: false,
+        site: 0
+    };
     //Aliases
     let Application = PIXI.Application,
         loader = PIXI.loader,
@@ -31,10 +38,62 @@
 
     loader
         .add("routerImage", "static/img/router.png")
+        .add("mouseImage", "static/img/mouse.png")
         .load(setup);
     document.body.appendChild(app.view);
     function play(delta) {
-        
+        Message.x += Message.vx;
+        mouse.y += mouse.vy
+        if (mouse.y == 250) {
+            status = false;
+        } else {
+            status = true;
+        }
+        // 如果不是接收状态，那就是发送状态
+        if (!ACK.status) {
+            // 没有发送完
+            if (index != SendMessage.length) {
+                // 如果没有在发送
+                if (!sending) {
+                    sending = true;
+                    Message.text = SendMessage[index]
+                    Message.vx = 2;
+                    Message.x = 220;
+                } else {
+                    if (Message.x >= 800) {
+                        ACK = {
+                            status: true,
+                            site: index
+                        }
+                        MessageData[1].text += SendMessage[index];
+                        Message.text = ''
+                        Message.x = 780;
+                        sending = false;
+                        index++;
+                    } else {
+                        site = parseInt(Message.x / 8);
+                    }
+                }
+            } else {
+                Message.text = '数据包发送完毕'
+            }
+        } else { //发送确认接收
+            if (!sending) {
+                sending = true;
+                Message.text = "ACK[1]";
+                Message.vx = -2;
+            } else {
+                if (Message.x <= 200) {
+                    ACK_Array[ACK.site] = 1;
+                    ACK_TEXT.text = ACK_Array.join('')
+                    ACK.status = false;
+                    sending = false;
+                }
+            }
+        }
+        if (Message.x <= 200 || Message.x >= 800) {
+            Message.vx = 0
+        }
     }
     // 初始化
     function setup() {
@@ -64,6 +123,52 @@
         line.x = 0;
         line.y = 280;
         app.stage.addChild(line);
+        // 添加老鼠
+        mouse = new Sprite(resources.mouseImage.texture);
+        mouse.x = 65 * 5 + 184;
+        mouse.y = 300;
+        mouse.vy = 0;
+        app.stage.addChild(mouse)
+        // 添加正在发送的信息
+        Message = new Text("M");
+        app.stage.addChild(Message);
+        Message.x = 200;
+        Message.y = 230;
+        Message.vx = 2;
+        MessageData[0] = new Text(SendMessage);
+        MessageData[0].x = 50;
+        MessageData[0].y = 190;
+        app.stage.addChild(MessageData[0])
+        ACK_TEXT = new Text(ACK_Array.join(''));
+        ACK_TEXT.x = 50;
+        ACK_TEXT.y = 220;
+        app.stage.addChild(ACK_TEXT)
+        MessageData[1] = new Text('');
+        MessageData[1].x = 860;
+        MessageData[1].y = 220;
+        app.stage.addChild(MessageData[1])
+        //Capture the keyboard arrow keys
+        let up = keyboard(38),
+            down = keyboard(40);
+        //Up
+        up.press = () => {
+            mouse.vy = -5;
+        };
+        up.release = () => {
+            if (!down.isDown && mouse.vx === 0) {
+                mouse.vy = 0;
+            }
+        };
+        //Down
+        down.press = () => {
+            mouse.vy = 5;
+            mouse.vx = 0;
+        };
+        down.release = () => {
+            if (!up.isDown && mouse.vx === 0) {
+                mouse.vy = 0;
+            }
+        };
         //set the game state to `play`
         state = play;
         //Start the game loop
@@ -72,6 +177,43 @@
     function gameLoop(delta) {
         //Update the current game state:
         state(delta);
+    }
+    // 键盘事件
+    function keyboard(keyCode) {
+        let key = {};
+        key.code = keyCode;
+        key.isDown = false;
+        key.isUp = true;
+        key.press = undefined;
+        key.release = undefined;
+        //The `downHandler`
+        key.downHandler = event => {
+            if (event.keyCode === key.code) {
+                if (key.isUp && key.press) key.press();
+                key.isDown = true;
+                key.isUp = false;
+            }
+            event.preventDefault();
+        };
+
+        //The `upHandler`
+        key.upHandler = event => {
+            if (event.keyCode === key.code) {
+                if (key.isDown && key.release) key.release();
+                key.isDown = false;
+                key.isUp = true;
+            }
+            event.preventDefault();
+        };
+
+        //Attach event listeners
+        window.addEventListener(
+            "keydown", key.downHandler.bind(key), false
+        );
+        window.addEventListener(
+            "keyup", key.upHandler.bind(key), false
+        );
+        return key;
     }
 </script>
 <style type="text/css">
