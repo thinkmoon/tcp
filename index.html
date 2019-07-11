@@ -15,11 +15,12 @@
     let router = [], label = [], mouse = null, MessageData = [];
     // 链路连接状态
     let status = true, sending = false;
-    let SendMessage = "I love you!", index = 0, Message = null;
-    let site = 0, ACK_TEXT = null, ACK_Array = new Int8Array(SendMessage.length),ACK = {
+    let SendMessage = prompt("请输入你想要发送的数据字符串",""), index = 0, Message = null;
+    let site = 0, ACK_TEXT = null, ACK_Array = new Int8Array(SendMessage.length), ACK = {
         status: false,
         site: 0
     };
+    let time = new Date(), timeDown = null;
     //Aliases
     let Application = PIXI.Application,
         loader = PIXI.loader,
@@ -43,11 +44,20 @@
     document.body.appendChild(app.view);
     function play(delta) {
         Message.x += Message.vx;
-        mouse.y += mouse.vy
-        if (mouse.y == 250) {
+        mouse.y += mouse.vy;
+        let fin_time = (10000 - (new Date() - time))
+        timeDown.text = "超时倒计时" + fin_time
+        // 链路是否中断
+        if (mouse.y > 200 && mouse.y < 300) {
             status = false;
         } else {
             status = true;
+        }   // 如果到达老鼠嘴边
+        if (500 < Message.x && Message.x < 600) {
+            if (!status) {
+                Message.text = ''
+                Message.vx = 0
+            }
         }
         // 如果不是接收状态，那就是发送状态
         if (!ACK.status) {
@@ -55,8 +65,10 @@
             if (index != SendMessage.length) {
                 // 如果没有在发送
                 if (!sending) {
+                    console.log("发送", index)
                     sending = true;
-                    Message.text = SendMessage[index]
+                    time = new Date();
+                    Message.text = '[' + SendMessage[index] + ']'
                     Message.vx = 2;
                     Message.x = 220;
                 } else {
@@ -65,11 +77,13 @@
                             status: true,
                             site: index
                         }
-                        MessageData[1].text += SendMessage[index];
+                        console.log(MessageData[1].text.length,index)
+                        if (typeof (MessageData[1].text.length) == "undefined" || MessageData[1].text.length == index + 1) {
+                            MessageData[1].text += SendMessage[index];
+                        }
                         Message.text = ''
                         Message.x = 780;
                         sending = false;
-                        index++;
                     } else {
                         site = parseInt(Message.x / 8);
                     }
@@ -81,7 +95,7 @@
         } else { //发送确认接收
             if (!sending) {
                 sending = true;
-                Message.text = "ACK[1]";
+                Message.text = "ACK[" + index + "]";
                 Message.vx = -2;
             } else {
                 if (Message.x <= 200) {
@@ -89,7 +103,17 @@
                     ACK_TEXT.text = ACK_Array.join('')
                     ACK.status = false;
                     sending = false;
+                    index++;
+                    console.log("下一个待发数据索引", index)
+                    console.log(new Date() - time)
                 }
+            }
+        }
+        if (parseInt(fin_time) <= 0) {
+            console.log("已经超时了")
+            sending = false;
+            if (ACK.status) {
+                ACK.status = false;
             }
         }
         if (Message.x <= 200 || Message.x >= 800) {
@@ -107,6 +131,10 @@
         label[0] = new Text("主机A");
         app.stage.addChild(label[0]);
         label[0].position.set(100, 320);
+        timeDown = new Text("10000");
+        app.stage.addChild(timeDown);
+        timeDown.position.set(90, 350);
+        timeDown.style = { fontSize: 10 }
         // 加载主机B
         router[1] = new Sprite(resources.routerImage.texture);
         router[1].x = 860;
@@ -136,8 +164,8 @@
         Message.x = 200;
         Message.y = 230;
         Message.vx = 2;
-        MessageData[0] = new Text(SendMessage);
-        MessageData[0].x = 50;
+        MessageData[0] = new Text("待发送数据:"+SendMessage);
+        MessageData[0].x = 0;
         MessageData[0].y = 190;
         app.stage.addChild(MessageData[0])
         ACK_TEXT = new Text(ACK_Array.join(''));
@@ -156,19 +184,14 @@
             mouse.vy = -5;
         };
         up.release = () => {
-            if (!down.isDown && mouse.vx === 0) {
-                mouse.vy = 0;
-            }
+            mouse.vy = 0;
         };
         //Down
         down.press = () => {
             mouse.vy = 5;
-            mouse.vx = 0;
         };
         down.release = () => {
-            if (!up.isDown && mouse.vx === 0) {
-                mouse.vy = 0;
-            }
+            mouse.vy = 0;
         };
         //set the game state to `play`
         state = play;
